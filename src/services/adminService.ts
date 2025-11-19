@@ -1,13 +1,13 @@
 // src/services/adminService.ts
-import { adminRepo } from '../repositories/adminRepository';
+import { adminRepository } from '../repositories/adminRepository';
 
 export function getAdminStats() {
-  const usersCount = adminRepo.countUsers();
-  const reviewsCount = adminRepo.countReviews();
-  const restaurantsCount = adminRepo.countRestaurants();
+  const usersCount = adminRepository.countUsers();
+  const reviewsCount = adminRepository.countReviews();
+  const restaurantsCount = adminRepository.countRestaurants();
 
-  const topRated = adminRepo.getTopRated();
-  const mostReviewed = adminRepo.getMostReviewed();
+  const topRated = adminRepository.getTopRated();
+  const mostReviewed = adminRepository.getMostReviewed();
 
   return {
     usersCount,

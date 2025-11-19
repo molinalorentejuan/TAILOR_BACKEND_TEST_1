@@ -1,6 +1,6 @@
 // src/services/restaurantService.ts
-import * as restaurantRepo from "../repositories/restaurantRepository";
-import * as reviewRepo from "../repositories/reviewRepository";
+import * as restaurantRepository from "../repositories/restaurantRepository";
+import * as reviewRepository from "../repositories/reviewRepository";
 
 export function listRestaurants(filters: {
   page: number;
@@ -42,15 +42,15 @@ export function listRestaurants(filters: {
 
   const offset = (page - 1) * limit;
 
-  return restaurantRepo.listRestaurants(whereSql, params, orderSql, limit, offset);
+  return restaurantRepository.listRestaurants(whereSql, params, orderSql, limit, offset);
 }
 
 export function getRestaurantById(id: number) {
-  return restaurantRepo.findRestaurantById(id);
+  return restaurantRepository.findRestaurantById(id);
 }
 
 export function listReviewsForRestaurant(id: number) {
-  return reviewRepo.listReviewsForRestaurant(id);
+  return reviewRepository.listReviewsForRestaurant(id);
 }
 
 export function createReviewForRestaurant({
@@ -64,10 +64,10 @@ export function createReviewForRestaurant({
                                            rating: number;
                                            comment: string;
                                          }) {
-  const exists = restaurantRepo.findRestaurantById(restaurantId);
+  const exists = restaurantRepository.findRestaurantById(restaurantId);
   if (!exists) return { type: "RESTAURANT_NOT_FOUND" };
 
-  const info = reviewRepository.insertReview(
+  const info = reviewRepositorysitory.insertReview(
     userId,
     restaurantId,
     rating,

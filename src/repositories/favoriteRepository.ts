@@ -1,4 +1,3 @@
-// src/repositories/favoriteRepo.ts
 import db from "../db";
 
 export function insertFavorite(userId: number, restaurantId: number): "OK" | "DUPLICATE" {

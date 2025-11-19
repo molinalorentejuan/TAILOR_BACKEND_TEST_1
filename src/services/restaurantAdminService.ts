@@ -1,4 +1,4 @@
-import { restaurantAdminRepo } from '../repositories/restaurantAdminRepository';
+import { restaurantAdminRepository } from '../repositories/restaurantAdminRepository';
 
 interface RestaurantAdminInput {
   name: string;
@@ -10,7 +10,7 @@ interface RestaurantAdminInput {
 export function createRestaurant(input: RestaurantAdminInput) {
   const { name, cuisine, rating = 0, neighborhood } = input;
 
-  const id = restaurantAdminRepo.insertRestaurant(
+  const id = restaurantAdminRepository.insertRestaurant(
     name,
     cuisine ?? null,
     rating,
@@ -24,13 +24,13 @@ export function updateRestaurant(
   id: number,
   input: RestaurantAdminInput
 ): { type: 'OK' } | { type: 'NOT_FOUND' } {
-  if (!restaurantAdminRepo.restaurantExists(id)) {
+  if (!restaurantAdminRepository.restaurantExists(id)) {
     return { type: 'NOT_FOUND' };
   }
 
   const { name, cuisine, rating, neighborhood } = input;
 
-  restaurantAdminRepo.updateRestaurant(
+  restaurantAdminRepository.updateRestaurant(
     id,
     name ?? null,
     cuisine ?? null,
@@ -44,10 +44,10 @@ export function updateRestaurant(
 export function deleteRestaurantById(
   id: number
 ): { type: 'OK' } | { type: 'NOT_FOUND' } {
-  if (!restaurantAdminRepo.restaurantExists(id)) {
+  if (!restaurantAdminRepository.restaurantExists(id)) {
     return { type: 'NOT_FOUND' };
   }
 
-  restaurantAdminRepo.deleteRestaurant(id);
+  restaurantAdminRepository.deleteRestaurant(id);
   return { type: 'OK' };
 }

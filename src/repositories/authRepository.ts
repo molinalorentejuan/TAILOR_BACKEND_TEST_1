@@ -1,4 +1,3 @@
-// src/repositories/authRepository.ts
 import db from "../db";
 
 export interface DBUser {

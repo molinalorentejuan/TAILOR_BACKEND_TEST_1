@@ -8,6 +8,7 @@ import {
   createRestaurant,
   updateRestaurant,
   deleteRestaurantById,
+  getAdminStats
 } from '../services/restaurantAdminService';
 
 const router = Router();
