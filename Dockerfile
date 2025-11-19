@@ -19,6 +19,7 @@ RUN addgroup --system appgroup && adduser --system appuser --ingroup appgroup
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY swagger ./swagger
 # Si quieres que la DB vaya dentro de la imagen:
 COPY restaurants.db ./restaurants.db
 
