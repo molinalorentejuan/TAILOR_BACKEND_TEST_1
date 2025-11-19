@@ -1,4 +1,3 @@
-// src/services/restaurantAdminService.ts
 import { restaurantAdminRepo } from '../repositories/restaurantAdminRepository';
 
 interface RestaurantAdminInput {

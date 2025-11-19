@@ -2,6 +2,13 @@
 import db from '../db';
 
 export const adminRepository = {
+  getStats: () => {
+      const users = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
+      const restaurants = db.prepare("SELECT COUNT(*) as count FROM restaurants").get().count;
+      const reviews = db.prepare("SELECT COUNT(*) as count FROM reviews").get().count;
+
+      return { users, restaurants, reviews };
+    },
   countUsers() {
     return (db.prepare('SELECT COUNT(*) as c FROM users').get() as any).c;
   },
