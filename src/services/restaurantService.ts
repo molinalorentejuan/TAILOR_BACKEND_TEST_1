@@ -67,7 +67,7 @@ export function createReviewForRestaurant({
   const exists = restaurantRepository.findRestaurantById(restaurantId);
   if (!exists) return { type: "RESTAURANT_NOT_FOUND" };
 
-  const info = reviewRepositorysitory.insertReview(
+  const info = reviewRepository.insertReview(
     userId,
     restaurantId,
     rating,

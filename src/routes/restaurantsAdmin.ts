@@ -8,8 +8,8 @@ import {
   createRestaurant,
   updateRestaurant,
   deleteRestaurantById,
-  getAdminStats
 } from '../services/restaurantAdminService';
+import { getAdminStats } from '../services/adminService';
 
 const router = Router();
 
