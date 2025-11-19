@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { errorHandler } from './middleware/errorHandler';
 import { generalRateLimiter } from './middleware/rateLimit';
 
 import authRoutes from './routes/auth';
