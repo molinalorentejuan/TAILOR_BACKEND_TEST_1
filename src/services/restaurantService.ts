@@ -54,11 +54,16 @@ export function listReviewsForRestaurant(id: number) {
 }
 
 export function createReviewForRestaurant({
-  userId,
-  restaurantId,
-  rating,
-  comment,
-}) {
+                                           userId,
+                                           restaurantId,
+                                           rating,
+                                           comment,
+                                         }: {
+                                           userId: number;
+                                           restaurantId: number;
+                                           rating: number;
+                                           comment: string;
+                                         }) {
   const exists = restaurantRepo.findRestaurantById(restaurantId);
   if (!exists) return { type: "RESTAURANT_NOT_FOUND" };
 
