@@ -1,30 +1,31 @@
 // src/services/RestaurantAdminService.ts
 import { injectable, inject } from "tsyringe";
 import { RestaurantAdminRepository } from "../repositories/RestaurantAdminRepository";
+import { OperatingHoursRepository } from "../repositories/OperatingHoursRepository";
 import { AppError } from "../errors/AppError";
-import {
-  CreateRestaurantInput,
-  UpdateRestaurantInput,
-} from "../dto/RestaurantDTO";
+import { CreateRestaurantInput, UpdateRestaurantInput } from "../dto/RestaurantDTO";
 
 @injectable()
 export class RestaurantAdminService {
   constructor(
     @inject(RestaurantAdminRepository)
-    private repo: RestaurantAdminRepository
+    private repo: RestaurantAdminRepository,
+    @inject(OperatingHoursRepository)
+    private hoursRepo: OperatingHoursRepository
   ) {}
 
   createRestaurant(data: CreateRestaurantInput) {
     const {
       name,
-      neighborhood,
       cuisine,
       rating = 0,
+      neighborhood,
       address,
       photograph,
       lat,
       lng,
       image,
+      hours
     } = data;
 
     const id = this.repo.insertRestaurant(
@@ -39,6 +40,12 @@ export class RestaurantAdminService {
       image ?? null
     );
 
+    if (hours) {
+      for (const h of hours) {
+        this.hoursRepo.insertHours(id, h.day, h.hours);
+      }
+    }
+
     return { id };
   }
 
@@ -49,14 +56,15 @@ export class RestaurantAdminService {
 
     const {
       name,
-      neighborhood,
       cuisine,
       rating,
+      neighborhood,
       address,
       photograph,
       lat,
       lng,
       image,
+      hours
     } = data;
 
     this.repo.updateRestaurant(
@@ -72,6 +80,14 @@ export class RestaurantAdminService {
       image ?? null
     );
 
+    this.hoursRepo.deleteForRestaurant(id);
+
+    if (hours) {
+      for (const h of hours) {
+        this.hoursRepo.insertHours(id, h.day, h.hours);
+      }
+    }
+
     return { id };
   }
 
@@ -80,7 +96,9 @@ export class RestaurantAdminService {
       throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
     }
 
+    this.hoursRepo.deleteForRestaurant(id);
     this.repo.deleteRestaurant(id);
+
     return { id };
   }
 }

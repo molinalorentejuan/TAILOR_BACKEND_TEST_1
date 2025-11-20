@@ -10,6 +10,7 @@ import { RestaurantAdminRepository } from "./repositories/RestaurantAdminReposit
 import { RestaurantRepository } from "./repositories/RestaurantRepository";
 import { ReviewRepository } from "./repositories/ReviewRepository";
 import { UserRepository } from "./repositories/UserRepository";
+import { OperatingHoursRepository } from "./repositories/OperatingHoursRepository";
 
 /**
  * SERVICES
@@ -30,6 +31,7 @@ container.registerSingleton(RestaurantAdminRepository, RestaurantAdminRepository
 container.registerSingleton(RestaurantRepository, RestaurantRepository);
 container.registerSingleton(ReviewRepository, ReviewRepository);
 container.registerSingleton(UserRepository, UserRepository);
+container.registerSingleton(OperatingHoursRepository, OperatingHoursRepository);
 
 /**
  * REGISTER SERVICES

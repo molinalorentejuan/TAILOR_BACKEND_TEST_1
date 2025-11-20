@@ -18,15 +18,22 @@ export const RestaurantsQueryDTO = z.object({
 });
 
 export const CreateRestaurantDTO = z.object({
-  name: z.string().min(1),
-  neighborhood: z.string().nullable().optional(),
-  cuisine_type: z.string().nullable().optional(),
-  rating: z.coerce.number().min(0).max(5).default(0),
-  address: z.string().nullable().optional(),
-  photograph: z.string().nullable().optional(),
-  lat: z.coerce.number().nullable().optional(),
-  lng: z.coerce.number().nullable().optional(),
-  image: z.string().nullable().optional(),
+  name: z.string(),
+  neighborhood: z.string().optional(),
+  cuisine: z.string().optional(),
+  rating: z.number().min(0).max(5).optional(),
+  address: z.string().optional(),
+  photograph: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
+  image: z.string().optional(),
+
+  hours: z.array(
+    z.object({
+      day: z.string(),
+      hours: z.string()
+    })
+  ).optional()
 });
 
 /**
