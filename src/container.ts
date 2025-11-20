@@ -1,9 +1,7 @@
-// src/container.ts
-import "reflect-metadata";
 import { container } from "tsyringe";
 
 /**
- * REPOSITORIES
+ * REPOSITORIES (DI COMPLETE)
  */
 import { AdminRepository } from "./repositories/AdminRepository";
 import { AuthRepository } from "./repositories/AuthRepository";

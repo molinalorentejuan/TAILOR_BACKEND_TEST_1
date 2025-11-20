@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import 'dotenv/config';
 import express from 'express';
 import morgan from 'morgan';
@@ -15,7 +16,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 
 import fs from 'fs';
 import path from 'path';
-import db from "../db/db";
+import db from "./db/db";
 
 const app = express();
 

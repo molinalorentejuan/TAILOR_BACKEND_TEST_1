@@ -29,25 +29,32 @@ export class RestaurantService {
     const where: string[] = [];
     const params: any[] = [];
 
+    // columna REAL en la DB
     if (cuisine) {
-      where.push("cuisine=?");
+      where.push("cuisine_type = ?");
       params.push(cuisine);
     }
+
+    // rating lo añades tú con ALTER TABLE
     if (rating !== undefined) {
-      where.push("rating>=?");
+      where.push("rating >= ?");
       params.push(rating);
     }
+
     if (neighborhood) {
-      where.push("neighborhood=?");
+      where.push("neighborhood = ?");
       params.push(neighborhood);
     }
 
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
+    // sorting seguro
     let orderSql = "";
     if (sort) {
       const [field, dir] = sort.split(":");
-      const safe = ["name", "rating", "cuisine", "neighborhood"].includes(field)
+      const safe = ["name", "rating", "cuisine_type", "neighborhood"].includes(
+        field
+      )
         ? field
         : "name";
 
@@ -77,15 +84,14 @@ export class RestaurantService {
   }
 
   /**
-   * Listar reviews de un restaurante
+   * Listar reviews
    */
   listReviewsForRestaurant(id: number) {
     return this.reviewRepo.listReviewsForRestaurant(id);
   }
 
   /**
-   * Crear una review para un restaurante
-   * DTO ya validado
+   * Crear review (DTO ya validado)
    */
   createReviewForRestaurant(input: CreateReviewInput) {
     const { userId, restaurantId, rating, comment } = input;
@@ -95,6 +101,7 @@ export class RestaurantService {
       throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
     }
 
+    // columnas reales: user_id, restaurant_id, rating, comments
     const info = this.reviewRepo.insertReview(
       userId,
       restaurantId,
@@ -111,12 +118,9 @@ export class RestaurantService {
   }
 
   /**
-   * Actualizar review del restaurante
+   * Actualizar review
    */
-  updateReviewForRestaurant(
-    reviewId: number,
-    data: UpdateReviewInput
-  ) {
+  updateReviewForRestaurant(reviewId: number, data: UpdateReviewInput) {
     const existing = this.reviewRepo.findReview(reviewId);
     if (!existing) {
       throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");

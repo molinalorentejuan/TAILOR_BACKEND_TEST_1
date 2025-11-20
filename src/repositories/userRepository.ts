@@ -11,7 +11,11 @@ export interface UserBasic {
 export class UserRepository {
   findUserById(id: number): UserBasic | undefined {
     return db
-      .prepare("SELECT id, email, role FROM users WHERE id=?")
+      .prepare(`
+        SELECT id, email, role
+        FROM users
+        WHERE id = ?
+      `)
       .get(id) as UserBasic | undefined;
   }
 }

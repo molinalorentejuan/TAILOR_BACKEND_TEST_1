@@ -4,9 +4,14 @@ import db from "../db/db";
 export interface RestaurantRow {
   id: number;
   name: string;
-  cuisine: string | null;
-  rating: number;
   neighborhood: string | null;
+  photograph: string | null;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  image: string | null;
+  cuisine_type: string | null;
+  rating: number;
 }
 
 @injectable()
@@ -32,7 +37,8 @@ export class RestaurantRepository {
     const rows = db
       .prepare(
         `
-        SELECT *
+        SELECT id, name, neighborhood, photograph, address, lat, lng,
+               image, cuisine_type, rating
         FROM restaurants
         ${whereSql}
         ${orderSql}
@@ -51,9 +57,25 @@ export class RestaurantRepository {
     };
   }
 
-  findRestaurantById(id: number): RestaurantRow | undefined {
-    return db
-      .prepare(`SELECT * FROM restaurants WHERE id=?`)
-      .get(id) as RestaurantRow | undefined;
-  }
+findRestaurantById(id: number): any {
+  const restaurant = db
+    .prepare(`SELECT * FROM restaurants WHERE id=?`)
+    .get(id);
+
+  if (!restaurant) return undefined;
+
+  const operatingHours = db
+    .prepare(`
+      SELECT day, hours
+      FROM operating_hours
+      WHERE restaurant_id = ?
+      ORDER BY id ASC
+    `)
+    .all(id);
+
+  return {
+    ...restaurant,
+    operatingHours,
+  };
+}
 }

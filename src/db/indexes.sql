@@ -8,9 +8,9 @@ CREATE INDEX IF NOT EXISTS idx_restaurants_rating ON restaurants(rating);
 CREATE INDEX IF NOT EXISTS idx_restaurants_name ON restaurants(name);
 
 -- REVIEWS
-CREATE INDEX IF NOT EXISTS idx_reviews_restaurantId ON reviews(restaurantId);
-CREATE INDEX IF NOT EXISTS idx_reviews_userId ON reviews(userId);
+CREATE INDEX IF NOT EXISTS idx_reviews_restaurantId ON reviews(restaurant_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_userId ON reviews(user_id);
 
 -- FAVORITES
-CREATE INDEX IF NOT EXISTS idx_favorites_userId ON favorites(userId);
-CREATE INDEX IF NOT EXISTS idx_favorites_restaurantId ON favorites(restaurantId);
+CREATE INDEX IF NOT EXISTS idx_favorites_userId ON favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_restaurantId ON favorites(restaurant_id);

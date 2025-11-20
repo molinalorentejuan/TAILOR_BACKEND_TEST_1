@@ -14,53 +14,73 @@ export class RestaurantAdminService {
     private repo: RestaurantAdminRepository
   ) {}
 
-  /**
-   * Crear restaurante (DTO ya validado)
-   */
   createRestaurant(data: CreateRestaurantInput) {
-    const { name, cuisine, rating = 0, neighborhood } = data;
+    const {
+      name,
+      neighborhood,
+      cuisine,
+      rating = 0,
+      address,
+      photograph,
+      lat,
+      lng,
+      image,
+    } = data;
 
     const id = this.repo.insertRestaurant(
       name,
+      neighborhood ?? null,
       cuisine ?? null,
       rating,
-      neighborhood ?? null
+      address ?? null,
+      photograph ?? null,
+      lat ?? null,
+      lng ?? null,
+      image ?? null
     );
 
     return { id };
   }
 
-  /**
-   * Actualizar restaurante
-   */
   updateRestaurant(id: number, data: UpdateRestaurantInput) {
     if (!this.repo.restaurantExists(id)) {
       throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
     }
 
-    const { name, cuisine, rating, neighborhood } = data;
+    const {
+      name,
+      neighborhood,
+      cuisine,
+      rating,
+      address,
+      photograph,
+      lat,
+      lng,
+      image,
+    } = data;
 
     this.repo.updateRestaurant(
       id,
       name ?? null,
+      neighborhood ?? null,
       cuisine ?? null,
       rating ?? null,
-      neighborhood ?? null
+      address ?? null,
+      photograph ?? null,
+      lat ?? null,
+      lng ?? null,
+      image ?? null
     );
 
     return { id };
   }
 
-  /**
-   * Eliminar restaurante
-   */
   deleteRestaurant(id: number) {
     if (!this.repo.restaurantExists(id)) {
       throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
     }
 
     this.repo.deleteRestaurant(id);
-
     return { id };
   }
 }

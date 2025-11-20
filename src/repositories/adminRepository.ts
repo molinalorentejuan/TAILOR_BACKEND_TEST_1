@@ -3,48 +3,75 @@ import db from "../db/db";
 
 @injectable()
 export class AdminRepository {
-  getStats() {
-    const users = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
-    const restaurants = db
-      .prepare("SELECT COUNT(*) as count FROM restaurants")
-      .get().count;
-    const reviews = db
-      .prepare("SELECT COUNT(*) as count FROM reviews")
-      .get().count;
-
-    return { users, restaurants, reviews };
-  }
-
+  /** USERS */
   countUsers(): number {
     return db.prepare("SELECT COUNT(*) as c FROM users").get().c;
   }
 
+  /** REVIEWS */
   countReviews(): number {
     return db.prepare("SELECT COUNT(*) as c FROM reviews").get().c;
   }
 
+  /** RESTAURANTS */
   countRestaurants(): number {
     return db.prepare("SELECT COUNT(*) as c FROM restaurants").get().c;
   }
 
+  /**
+   * TOP 3 mejor valorados
+   * Calculamos el rating medio REAL desde reviews
+   */
   getTopRated() {
     return db
-      .prepare("SELECT * FROM restaurants ORDER BY rating DESC LIMIT 3")
+      .prepare(
+        `
+        SELECT
+          r.id,
+          r.name,
+          r.cuisine_type AS cuisine,
+          r.neighborhood,
+          AVG(rv.rating) AS avgRating
+        FROM restaurants r
+        LEFT JOIN reviews rv ON rv.restaurant_id = r.id
+        GROUP BY r.id
+        ORDER BY avgRating DESC NULLS LAST
+        LIMIT 3
+      `
+      )
       .all();
   }
 
+  /**
+   * TOP 3 más reseñados
+   */
   getMostReviewed() {
     return db
       .prepare(
         `
-        SELECT r.id, r.name, COUNT(rv.id) as reviews
+        SELECT
+          r.id,
+          r.name,
+          r.cuisine_type AS cuisine,
+          COUNT(rv.id) AS reviews
         FROM restaurants r
-        LEFT JOIN reviews rv ON rv.restaurantId = r.id
-        GROUP BY r.id, r.name
+        LEFT JOIN reviews rv ON rv.restaurant_id = r.id
+        GROUP BY r.id
         ORDER BY reviews DESC
         LIMIT 3
       `
       )
       .all();
+  }
+
+  /** ESTADÍSTICAS GLOBALES */
+  getStats() {
+    return {
+      users: this.countUsers(),
+      restaurants: this.countRestaurants(),
+      reviews: this.countReviews(),
+      topRated: this.getTopRated(),
+      mostReviewed: this.getMostReviewed(),
+    };
   }
 }

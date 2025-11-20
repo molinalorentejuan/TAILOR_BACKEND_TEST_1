@@ -9,19 +9,19 @@ export class FavoriteRepository {
   ): "OK" | "DUPLICATE" {
     try {
       db.prepare(
-        "INSERT INTO favorites (userId, restaurantId) VALUES (?, ?)"
+        "INSERT INTO favorites (user_id, restaurant_id) VALUES (?, ?)"
       ).run(userId, restaurantId);
 
       return "OK";
     } catch (err: any) {
       if (String(err).includes("UNIQUE")) return "DUPLICATE";
-      throw err; // repos no crean AppError
+      throw err;
     }
   }
 
   deleteFavorite(userId: number, restaurantId: number) {
     return db
-      .prepare("DELETE FROM favorites WHERE userId=? AND restaurantId=?")
+      .prepare("DELETE FROM favorites WHERE user_id=? AND restaurant_id=?")
       .run(userId, restaurantId);
   }
 
@@ -31,8 +31,8 @@ export class FavoriteRepository {
         `
         SELECT r.*
         FROM favorites f
-        JOIN restaurants r ON r.id = f.restaurantId
-        WHERE f.userId=?
+        JOIN restaurants r ON r.id = f.restaurant_id
+        WHERE f.user_id=?
       `
       )
       .all(userId);
