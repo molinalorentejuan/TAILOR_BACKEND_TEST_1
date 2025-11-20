@@ -174,21 +174,22 @@ JWT_SECRET=change_me
 
 ```
 src/
+ ├── container.ts
+ ├── i18n.ts
  ├── index.ts
  ├── db.ts
- ├── i18n.ts
- ├── routes/
- ├── services/
+ ├── dto/
  ├── middleware/
- ├── utils/
- ├── scripts/
- └── tests/
-restaurants.db
+ ├── repositories/
+ ├── routes/
+ ├── script/
+ ├── services/
+ ├── test/
+ ├── types/
+ └── utils/
+swagger/
 Dockerfile
 Procfile
 package.json
 tsconfig.json
 README.md
-```
-
-// Indices SQL para rendimiento

@@ -1,78 +1,128 @@
-// src/services/restaurantService.ts
-import * as restaurantRepository from "../repositories/restaurantRepository";
-import * as reviewRepository from "../repositories/reviewRepository";
+// src/services/RestaurantService.ts
+import { injectable, inject } from "tsyringe";
+import { RestaurantRepository } from "../repositories/RestaurantRepository";
+import { ReviewRepository } from "../repositories/ReviewRepository";
+import { AppError } from "../errors/AppError";
 
-export function listRestaurants(filters: {
-  page: number;
-  limit: number;
-  cuisine?: string;
-  rating?: number;
-  neighborhood?: string;
-  sort?: string;
-}) {
-  const { page, limit, cuisine, rating, neighborhood, sort } = filters;
+import {
+  RestaurantsQueryInput,
+  CreateReviewInput,
+} from "../dto/RestaurantDTO";
+import { UpdateReviewInput } from "../dto/ReviewDTO";
 
-  const where = [];
-  const params: any[] = [];
+@injectable()
+export class RestaurantService {
+  constructor(
+    @inject(RestaurantRepository)
+    private restaurantRepo: RestaurantRepository,
 
-  if (cuisine) {
-    where.push("cuisine=?");
-    params.push(cuisine);
+    @inject(ReviewRepository)
+    private reviewRepo: ReviewRepository
+  ) {}
+
+  /**
+   * Listar restaurantes con filtros validados (DTO)
+   */
+  listRestaurants(query: RestaurantsQueryInput) {
+    const { page, limit, cuisine, rating, neighborhood, sort } = query;
+
+    const where: string[] = [];
+    const params: any[] = [];
+
+    if (cuisine) {
+      where.push("cuisine=?");
+      params.push(cuisine);
+    }
+    if (rating !== undefined) {
+      where.push("rating>=?");
+      params.push(rating);
+    }
+    if (neighborhood) {
+      where.push("neighborhood=?");
+      params.push(neighborhood);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+    let orderSql = "";
+    if (sort) {
+      const [field, dir] = sort.split(":");
+      const safe = ["name", "rating", "cuisine", "neighborhood"].includes(field)
+        ? field
+        : "name";
+
+      orderSql = `ORDER BY ${safe} ${dir === "desc" ? "DESC" : "ASC"}`;
+    }
+
+    const offset = (page - 1) * limit;
+
+    return this.restaurantRepo.listRestaurants(
+      whereSql,
+      params,
+      orderSql,
+      limit,
+      offset
+    );
   }
-  if (rating !== undefined) {
-    where.push("rating>=?");
-    params.push(rating);
-  }
-  if (neighborhood) {
-    where.push("neighborhood=?");
-    params.push(neighborhood);
-  }
 
-  const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-  let orderSql = "";
-  if (sort) {
-    const [field, dir] = sort.split(":");
-    const safe = ["name", "rating", "cuisine", "neighborhood"].includes(field)
-      ? field
-      : "name";
-
-    orderSql = `ORDER BY ${safe} ${dir === "desc" ? "DESC" : "ASC"}`;
+  /**
+   * Obtener un restaurante por ID
+   */
+  getRestaurantById(id: number) {
+    const restaurant = this.restaurantRepo.findRestaurantById(id);
+    if (!restaurant) {
+      throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
+    }
+    return restaurant;
   }
 
-  const offset = (page - 1) * limit;
+  /**
+   * Listar reviews de un restaurante
+   */
+  listReviewsForRestaurant(id: number) {
+    return this.reviewRepo.listReviewsForRestaurant(id);
+  }
 
-  return restaurantRepository.listRestaurants(whereSql, params, orderSql, limit, offset);
-}
+  /**
+   * Crear una review para un restaurante
+   * DTO ya validado
+   */
+  createReviewForRestaurant(input: CreateReviewInput) {
+    const { userId, restaurantId, rating, comment } = input;
 
-export function getRestaurantById(id: number) {
-  return restaurantRepository.findRestaurantById(id);
-}
+    const exists = this.restaurantRepo.findRestaurantById(restaurantId);
+    if (!exists) {
+      throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
+    }
 
-export function listReviewsForRestaurant(id: number) {
-  return reviewRepository.listReviewsForRestaurant(id);
-}
+    const info = this.reviewRepo.insertReview(
+      userId,
+      restaurantId,
+      rating,
+      comment
+    );
 
-export function createReviewForRestaurant({
-                                           userId,
-                                           restaurantId,
-                                           rating,
-                                           comment,
-                                         }: {
-                                           userId: number;
-                                           restaurantId: number;
-                                           rating: number;
-                                           comment: string;
-                                         }) {
-  const exists = restaurantRepository.findRestaurantById(restaurantId);
-  if (!exists) return { type: "RESTAURANT_NOT_FOUND" };
+    return {
+      id: info.lastInsertRowid,
+      restaurantId,
+      rating,
+      comment,
+    };
+  }
 
-  const info = reviewRepository.insertReview(
-    userId,
-    restaurantId,
-    rating,
-    comment
-  );
+  /**
+   * Actualizar review del restaurante
+   */
+  updateReviewForRestaurant(
+    reviewId: number,
+    data: UpdateReviewInput
+  ) {
+    const existing = this.reviewRepo.findReview(reviewId);
+    if (!existing) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
 
-  return { type: "OK", id: info.lastInsertRowid };
+    this.reviewRepo.updateReview(reviewId, data.rating, data.comment ?? null);
+    return { reviewId };
+  }
 }

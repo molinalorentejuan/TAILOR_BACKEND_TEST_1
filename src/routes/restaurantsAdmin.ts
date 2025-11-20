@@ -1,99 +1,90 @@
-import { Router } from 'express';
-import { authMiddleware, roleMiddleware, AuthRequest } from '../middleware/auth';
-import { validateBody, validateParams } from '../middleware/validate';
-import { invalidateCache } from '../middleware/cache';
-import { z } from 'zod';
-import { t } from '../i18n';
+// src/routes/admin.restaurants.ts
+import { Router } from "express";
+import { authMiddleware, roleMiddleware, AuthRequest } from "../middleware/auth";
+import { validateBody, validateParams } from "../middleware/validate";
+import { invalidateCache } from "../middleware/cache";
 import {
-  createRestaurant,
-  updateRestaurant,
-  deleteRestaurantById,
-} from '../services/restaurantAdminService';
-import { getAdminStats } from '../services/adminService';
+  CreateRestaurantDTO,
+  UpdateRestaurantDTO,
+} from "../dto/RestaurantDTO";
+import { container } from "../container";
+import { RestaurantAdminService } from "../services/RestaurantAdminService";
 
 const router = Router();
+const adminService = container.resolve(RestaurantAdminService);
 
-const schema = z.object({
-  name: z.string(),
-  cuisine: z.string().optional(),
-  rating: z.number().min(0).max(5).optional(),
-  neighborhood: z.string().optional(),
-});
+const IdParamDTO = UpdateRestaurantDTO.extend({
+  id: undefined
+}); // placeholder, pero usamos otro DTO abajo
 
-const idParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
+const IdDTO = {
+  id: (z) => z.coerce.number().int().positive(),
+};
 
-/** POST /restaurants */
+/**
+ * POST /admin/restaurants
+ */
 router.post(
-  '/',
+  "/",
   authMiddleware,
-  roleMiddleware(['ADMIN']),
-  validateBody(schema),
-  (req: AuthRequest, res) => {
-    const { name, cuisine, rating = 0, neighborhood } = req.body;
-
-    const result = createRestaurant({ name, cuisine, rating, neighborhood });
-
-    invalidateCache();
-    res.status(201).json({ id: result.id });
+  roleMiddleware(["ADMIN"]),
+  validateBody(CreateRestaurantDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const id = adminService.createRestaurant(req.body);
+      invalidateCache();
+      res.status(201).json(id);
+    } catch (err) {
+      next(err);
+    }
   }
 );
 
-/** PUT /restaurants/:id */
+/**
+ * PUT /admin/restaurants/:id
+ */
 router.put(
-  '/:id',
+  "/:id",
   authMiddleware,
-  roleMiddleware(['ADMIN']),
-  validateParams(idParamSchema),
-  validateBody(schema.partial()),
-  (req: AuthRequest, res) => {
-    const { id } = req.params as any;
-    const { name, cuisine, rating, neighborhood } = req.body;
-
-    const result = updateRestaurant(id, { name, cuisine, rating, neighborhood });
-
-    if (result.type === 'NOT_FOUND') {
-      return res
-        .status(404)
-        .json({ message: t(req, 'RESTAURANT_NOT_FOUND') });
+  roleMiddleware(["ADMIN"]),
+  validateParams(
+    // id: number
+    require("zod").object({
+      id: require("zod").coerce.number().int().positive(),
+    })
+  ),
+  validateBody(UpdateRestaurantDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      adminService.updateRestaurant(req.params.id, req.body);
+      invalidateCache();
+      res.json({ message: "Restaurant updated" });
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.json({ message: t(req, 'RESTAURANT_UPDATED') });
   }
 );
 
-/** DELETE /restaurants/:id */
+/**
+ * DELETE /admin/restaurants/:id
+ */
 router.delete(
-  '/:id',
+  "/:id",
   authMiddleware,
-  roleMiddleware(['ADMIN']),
-  validateParams(idParamSchema),
-  (req: AuthRequest, res) => {
-    const { id } = req.params as any;
-
-    const result = deleteRestaurantById(id);
-
-    if (result.type === 'NOT_FOUND') {
-      return res
-        .status(404)
-        .json({ message: t(req, 'RESTAURANT_NOT_FOUND') });
+  roleMiddleware(["ADMIN"]),
+  validateParams(
+    require("zod").object({
+      id: require("zod").coerce.number().int().positive(),
+    })
+  ),
+  (req: AuthRequest, res, next) => {
+    try {
+      adminService.deleteRestaurant(req.params.id);
+      invalidateCache();
+      res.status(204).send();
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.status(204).send();
-  }
-);
-
-/** GET /admin/stats */
-router.get(
-  '/stats',
-  authMiddleware,
-  roleMiddleware(['ADMIN']),
-  (req, res) => {
-    const stats = getAdminStats();
-    res.json(stats);
   }
 );
 

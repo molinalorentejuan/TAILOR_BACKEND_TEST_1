@@ -1,22 +1,31 @@
-// src/repositories/restaurantAdminRepository.ts
-import db from '../db';
+import { injectable } from "tsyringe";
+import db from "../db/db";
 
-export const restaurantAdminRepository = {
-  insertRestaurant(name: string, cuisine: string | null, rating: number, neighborhood: string | null) {
-    const info = db.prepare(
+
+@injectable()
+export class RestaurantAdminRepository {
+  insertRestaurant(
+    name: string,
+    cuisine: string | null,
+    rating: number,
+    neighborhood: string | null
+  ): number {
+    const info = db
+      .prepare(
+        `
+        INSERT INTO restaurants (name, cuisine, rating, neighborhood)
+        VALUES (?, ?, ?, ?)
       `
-      INSERT INTO restaurants (name, cuisine, rating, neighborhood)
-      VALUES (?, ?, ?, ?)
-    `
-    ).run(name, cuisine, rating, neighborhood);
+      )
+      .run(name, cuisine, rating, neighborhood);
 
     return Number(info.lastInsertRowid);
-  },
+  }
 
   restaurantExists(id: number): boolean {
-    const row = db.prepare('SELECT id FROM restaurants WHERE id=?').get(id);
+    const row = db.prepare("SELECT id FROM restaurants WHERE id=?").get(id);
     return !!row;
-  },
+  }
 
   updateRestaurant(
     id: number,
@@ -35,9 +44,9 @@ export const restaurantAdminRepository = {
         WHERE id=?
       `
     ).run(name, cuisine, rating, neighborhood, id);
-  },
+  }
 
   deleteRestaurant(id: number) {
-    db.prepare('DELETE FROM restaurants WHERE id=?').run(id);
-  },
-};
+    db.prepare("DELETE FROM restaurants WHERE id=?").run(id);
+  }
+}

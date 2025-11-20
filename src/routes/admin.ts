@@ -1,17 +1,25 @@
-import { Router } from 'express';
-import { authMiddleware, roleMiddleware } from '../middleware/auth';
-import { getAdminStats } from '../services/adminService';
+import { Router } from "express";
+import { authMiddleware, roleMiddleware } from "../middleware/auth";
+import { container } from "../container";
+import { AdminService } from "../services/AdminService";
 
 const router = Router();
+const adminService = container.resolve(AdminService);
 
-/** GET /admin/stats */
+/**
+ * GET /admin/stats
+ */
 router.get(
-  '/stats',
+  "/stats",
   authMiddleware,
-  roleMiddleware(['ADMIN']),
-  (req, res) => {
-    const stats = getAdminStats();
-    res.json(stats);
+  roleMiddleware(["ADMIN"]),
+  (req, res, next) => {
+    try {
+      const stats = adminService.getAdminStats();
+      res.json(stats);
+    } catch (err) {
+      next(err);
+    }
   }
 );
 

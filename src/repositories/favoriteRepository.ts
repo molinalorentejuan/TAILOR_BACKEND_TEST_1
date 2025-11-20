@@ -1,32 +1,40 @@
-import db from "../db";
+import { injectable } from "tsyringe";
+import db from "../db/db";
 
-export function insertFavorite(userId: number, restaurantId: number): "OK" | "DUPLICATE" {
-  try {
-    db.prepare(
-      "INSERT INTO favorites (userId, restaurantId) VALUES (?, ?)"
-    ).run(userId, restaurantId);
-    return "OK";
-  } catch (err: any) {
-    if (String(err).includes("UNIQUE")) return "DUPLICATE";
-    throw err;
+@injectable()
+export class FavoriteRepository {
+  insertFavorite(
+    userId: number,
+    restaurantId: number
+  ): "OK" | "DUPLICATE" {
+    try {
+      db.prepare(
+        "INSERT INTO favorites (userId, restaurantId) VALUES (?, ?)"
+      ).run(userId, restaurantId);
+
+      return "OK";
+    } catch (err: any) {
+      if (String(err).includes("UNIQUE")) return "DUPLICATE";
+      throw err; // repos no crean AppError
+    }
   }
-}
 
-export function deleteFavorite(userId: number, restaurantId: number) {
-  return db
-    .prepare("DELETE FROM favorites WHERE userId=? AND restaurantId=?")
-    .run(userId, restaurantId);
-}
+  deleteFavorite(userId: number, restaurantId: number) {
+    return db
+      .prepare("DELETE FROM favorites WHERE userId=? AND restaurantId=?")
+      .run(userId, restaurantId);
+  }
 
-export function listFavoritesByUser(userId: number) {
-  return db
-    .prepare(
+  listFavoritesByUser(userId: number) {
+    return db
+      .prepare(
+        `
+        SELECT r.*
+        FROM favorites f
+        JOIN restaurants r ON r.id = f.restaurantId
+        WHERE f.userId=?
       `
-      SELECT r.*
-      FROM favorites f
-      JOIN restaurants r ON r.id = f.restaurantId
-      WHERE f.userId=?
-    `
-    )
-    .all(userId);
+      )
+      .all(userId);
+  }
 }

@@ -1,19 +1,36 @@
-// src/services/adminService.ts
-import { adminRepository } from '../repositories/adminRepository';
+import { injectable, inject } from "tsyringe";
+import { AdminRepository } from "../repositories/AdminRepository";
+import { AppError } from "../errors/AppError";
 
-export function getAdminStats() {
-  const usersCount = adminRepository.countUsers();
-  const reviewsCount = adminRepository.countReviews();
-  const restaurantsCount = adminRepository.countRestaurants();
+@injectable()
+export class AdminService {
+  constructor(
+    @inject(AdminRepository)
+    private adminRepo: AdminRepository
+  ) {}
 
-  const topRated = adminRepository.getTopRated();
-  const mostReviewed = adminRepository.getMostReviewed();
+  /**
+   * Devuelve todas las métricas del panel admin.
+   * Lanza AppError si algo inesperado pasa.
+   */
+  getAdminStats() {
+    try {
+      const usersCount = this.adminRepo.countUsers();
+      const reviewsCount = this.adminRepo.countReviews();
+      const restaurantsCount = this.adminRepo.countRestaurants();
 
-  return {
-    usersCount,
-    reviewsCount,
-    restaurantsCount,
-    topRated,
-    mostReviewed,
-  };
+      const topRated = this.adminRepo.getTopRated();
+      const mostReviewed = this.adminRepo.getMostReviewed();
+
+      return {
+        usersCount,
+        reviewsCount,
+        restaurantsCount,
+        topRated,
+        mostReviewed,
+      };
+    } catch (err) {
+      throw new AppError("Failed to load admin stats", 500, "ADMIN_STATS_ERROR");
+    }
+  }
 }

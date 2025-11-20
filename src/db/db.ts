@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 
-const db = new Database('restaurants.db');
+const db = new Database('src/db/restaurants.db');
 db.pragma('foreign_keys = ON');
 
 db.exec(`

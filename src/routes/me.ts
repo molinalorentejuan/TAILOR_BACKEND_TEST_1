@@ -1,132 +1,144 @@
 // src/routes/me.ts
-import { Router } from 'express';
-import { z } from 'zod';
-import { authMiddleware, AuthRequest } from '../middleware/auth';
-import { validateBody, validateParams } from '../middleware/validate';
-import { invalidateCache } from '../middleware/cache';
-import { t } from '../i18n';
-
+import { Router } from "express";
+import { authMiddleware, AuthRequest } from "../middleware/auth";
+import { validateBody, validateParams } from "../middleware/validate";
 import {
-  addFavorite,
-  deleteUserReview,
-  getUserById,
-  listFavoritesByUser,
-  listReviewsByUser,
-  removeFavorite,
-  updateUserReview,
-} from '../services/userService';
+  UpdateReviewDTO,
+  ReviewIdParamDTO,
+} from "../dto/ReviewDTO";
+import { FavoriteParamsDTO } from "../dto/FavoriteDTO";
+import { invalidateCache } from "../middleware/cache";
+import { container } from "../container";
+import { UserService } from "../services/UserService";
 
 const router = Router();
+const userService = container.resolve(UserService);
 
-/** GET /me */
-router.get('/', authMiddleware, (req: AuthRequest, res) => {
-  const user = getUserById(req.user!.id);
-  res.json(user);
+/**
+ * GET /me
+ */
+router.get("/", authMiddleware, (req: AuthRequest, res, next) => {
+  try {
+    const user = userService.getUserById(req.user!.id);
+    return res.json(user);
+  } catch (err) {
+    next(err);
+  }
 });
 
-/** GET /me/reviews */
-router.get('/reviews', authMiddleware, (req: AuthRequest, res) => {
-  const rows = listReviewsByUser(req.user!.id);
-  res.json(rows);
+/**
+ * GET /me/reviews
+ */
+router.get("/reviews", authMiddleware, (req: AuthRequest, res, next) => {
+  try {
+    const rows = userService.listReviewsByUser(req.user!.id);
+    return res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
-// Schemas
-const reviewSchema = z.object({
-  rating: z.number().min(1).max(5),
-  comment: z.string().optional(),
-});
-
-const reviewIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-const restaurantIdParamsSchema = z.object({
-  restaurantId: z.coerce.number().int().positive(),
-});
-
-/** PUT /me/reviews/:id */
+/**
+ * PUT /me/reviews/:id
+ */
 router.put(
-  '/reviews/:id',
+  "/reviews/:id",
   authMiddleware,
-  validateParams(reviewIdParamsSchema),
-  validateBody(reviewSchema),
-  (req: AuthRequest, res) => {
-    const { id } = req.params as any;
-    const { rating, comment } = req.body;
+  validateParams(ReviewIdParamDTO),
+  validateBody(UpdateReviewDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const { id } = req.params;
+      const { rating, comment } = req.body;
 
-    const result = updateUserReview({
-      reviewId: id,
-      userId: req.user!.id,
-      rating,
-      comment,
-    });
+      userService.updateUserReview({
+        reviewId: id,
+        userId: req.user!.id,
+        rating,
+        comment,
+      });
 
-    if (result.type === 'NOT_FOUND') {
-      return res.status(404).json({ message: t(req, 'REVIEW_NOT_FOUND') });
+      invalidateCache();
+      return res.json({ message: "Review updated" });
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.json({ message: t(req, 'REVIEW_UPDATED') });
   }
 );
 
-/** DELETE /me/reviews/:id */
+/**
+ * DELETE /me/reviews/:id
+ */
 router.delete(
-  '/reviews/:id',
+  "/reviews/:id",
   authMiddleware,
-  validateParams(reviewIdParamsSchema),
-  (req: AuthRequest, res) => {
-    const { id } = req.params as any;
+  validateParams(ReviewIdParamDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const { id } = req.params;
 
-    const result = deleteUserReview(id, req.user!.id);
+      userService.deleteUserReview(id, req.user!.id);
 
-    if (result.type === 'NOT_FOUND') {
-      return res.status(404).json({ message: t(req, 'REVIEW_NOT_FOUND') });
+      invalidateCache();
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.status(204).send();
   }
 );
 
-/** POST /me/favorites/:restaurantId */
+/**
+ * POST /me/favorites/:restaurantId
+ */
 router.post(
-  '/favorites/:restaurantId',
+  "/favorites/:restaurantId",
   authMiddleware,
-  validateParams(restaurantIdParamsSchema),
-  (req: AuthRequest, res) => {
-    const { restaurantId } = req.params as any;
+  validateParams(FavoriteParamsDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const { restaurantId } = req.params;
 
-    const result = addFavorite(req.user!.id, restaurantId);
+      userService.addFavorite(req.user!.id, Number(restaurantId));
 
-    if (result.type === 'RESTAURANT_NOT_FOUND') {
-      return res.status(404).json({ message: t(req, 'RESTAURANT_NOT_FOUND') });
+      invalidateCache();
+      return res.status(201).json({ message: "Favorite added" });
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.status(201).json({ message: t(req, 'FAVORITE_ADDED') });
   }
 );
 
-/** DELETE /me/favorites/:restaurantId */
+/**
+ * DELETE /me/favorites/:restaurantId
+ */
 router.delete(
-  '/favorites/:restaurantId',
+  "/favorites/:restaurantId",
   authMiddleware,
-  validateParams(restaurantIdParamsSchema),
-  (req: AuthRequest, res) => {
-    const { restaurantId } = req.params as any;
+  validateParams(FavoriteParamsDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const { restaurantId } = req.params;
 
-    removeFavorite(req.user!.id, restaurantId);
+      userService.removeFavorite(req.user!.id, Number(restaurantId));
 
-    invalidateCache();
-    res.status(204).send();
+      invalidateCache();
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   }
 );
 
-/** GET /me/favorites */
-router.get('/favorites', authMiddleware, (req: AuthRequest, res) => {
-  const rows = listFavoritesByUser(req.user!.id);
-  res.json(rows);
+/**
+ * GET /me/favorites
+ */
+router.get("/favorites", authMiddleware, (req: AuthRequest, res, next) => {
+  try {
+    const rows = userService.listFavoritesByUser(req.user!.id);
+    return res.json(rows);
+  } catch (err) {
+    next(err);
+  }
 });
 
 export default router;

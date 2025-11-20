@@ -1,63 +1,113 @@
-// src/services/userService.ts
-import * as userRepo from "../repositories/userRepository";
-import * as reviewRepo from "../repositories/reviewRepository";
-import * as favoriteRepo from "../repositories/favoriteRepository";
-import * as restaurantRepo from "../repositories/restaurantRepository";
+// src/services/UserService.ts
+import { injectable, inject } from "tsyringe";
+import { UserRepository } from "../repositories/UserRepository";
+import { ReviewRepository } from "../repositories/ReviewRepository";
+import { FavoriteRepository } from "../repositories/FavoriteRepository";
+import { RestaurantRepository } from "../repositories/RestaurantRepository";
+import { AppError } from "../errors/AppError";
 
-// TYPES
-export type UpdateReviewResult =
-  | { type: "OK" }
-  | { type: "NOT_FOUND" };
+import {
+  UpdateReviewInput,
+  ReviewIdParamInput,
+} from "../dto/ReviewDTO";
 
-export type DeleteReviewResult =
-  | { type: "OK" }
-  | { type: "NOT_FOUND" };
+@injectable()
+export class UserService {
+  constructor(
+    @inject(UserRepository)
+    private userRepo: UserRepository,
 
-export type FavoriteResult =
-  | { type: "OK" }
-  | { type: "RESTAURANT_NOT_FOUND" };
+    @inject(ReviewRepository)
+    private reviewRepo: ReviewRepository,
 
-export function getUserById(id: number) {
-  return userRepo.findUserById(id);
-}
+    @inject(FavoriteRepository)
+    private favoriteRepo: FavoriteRepository,
 
-export function listReviewsByUser(userId: number) {
-  return reviewRepo.listReviewsByUser(userId);
-}
+    @inject(RestaurantRepository)
+    private restaurantRepo: RestaurantRepository
+  ) {}
 
-export function updateUserReview(options: {
-  reviewId: number;
-  userId: number;
-  rating: number;
-  comment?: string;
-}): UpdateReviewResult {
-  const existing = reviewRepo.findUserReview(options.reviewId, options.userId);
-  if (!existing) return { type: "NOT_FOUND" };
+  /**
+   * Obtener usuario autenticado
+   */
+  getUserById(id: number) {
+    const user = this.userRepo.findUserById(id);
+    if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND");
+    return user;
+  }
 
-  reviewRepo.updateReview(options.reviewId, options.rating, options.comment);
-  return { type: "OK" };
-}
+  /**
+   * Listar reviews del usuario
+   */
+  listReviewsByUser(userId: number) {
+    return this.reviewRepo.listReviewsByUser(userId);
+  }
 
-export function deleteUserReview(reviewId: number, userId: number): DeleteReviewResult {
-  const existing = reviewRepo.findUserReview(reviewId, userId);
-  if (!existing) return { type: "NOT_FOUND" };
+  /**
+   * Actualizar review del usuario
+   */
+  updateUserReview(
+    reviewParams: ReviewIdParamInput,
+    data: UpdateReviewInput,
+    userId: number
+  ) {
+    const existing = this.reviewRepo.findUserReview(reviewParams.id, userId);
+    if (!existing) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
 
-  reviewRepo.deleteReview(reviewId);
-  return { type: "OK" };
-}
+    this.reviewRepo.updateReview(
+      reviewParams.id,
+      data.rating,
+      data.comment ?? null
+    );
 
-export function addFavorite(userId: number, restaurantId: number): FavoriteResult {
-  const restaurant = restaurantRepo.findRestaurantById(restaurantId);
-  if (!restaurant) return { type: "RESTAURANT_NOT_FOUND" };
+    return { id: reviewParams.id };
+  }
 
-  favoriteRepo.insertFavorite(userId, restaurantId);
-  return { type: "OK" };
-}
+  /**
+   * Eliminar review del usuario
+   */
+  deleteUserReview(reviewParams: ReviewIdParamInput, userId: number) {
+    const existing = this.reviewRepo.findUserReview(reviewParams.id, userId);
+    if (!existing) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
 
-export function removeFavorite(userId: number, restaurantId: number) {
-  favoriteRepo.deleteFavorite(userId, restaurantId);
-}
+    this.reviewRepo.deleteReview(reviewParams.id);
+    return { id: reviewParams.id };
+  }
 
-export function listFavoritesByUser(userId: number) {
-  return favoriteRepo.listFavoritesByUser(userId);
+  /**
+   * Añadir favorito
+   */
+  addFavorite(userId: number, restaurantId: number) {
+    const restaurant = this.restaurantRepo.findRestaurantById(restaurantId);
+    if (!restaurant) {
+      throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
+    }
+
+    const res = this.favoriteRepo.insertFavorite(userId, restaurantId);
+
+    if (res === "DUPLICATE") {
+      throw new AppError("Already in favorites", 409, "ALREADY_FAVORITE");
+    }
+
+    return { restaurantId };
+  }
+
+  /**
+   * Borrar favorito
+   */
+  removeFavorite(userId: number, restaurantId: number) {
+    this.favoriteRepo.deleteFavorite(userId, restaurantId);
+    return { restaurantId };
+  }
+
+  /**
+   * Listar favoritos
+   */
+  listFavoritesByUser(userId: number) {
+    return this.favoriteRepo.listFavoritesByUser(userId);
+  }
 }

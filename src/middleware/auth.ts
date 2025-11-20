@@ -1,45 +1,61 @@
-import { NextFunction, Response, Request } from 'express';
-import { verifyToken } from '../utils/jwt';
-import { t } from '../i18n';
+import { NextFunction, Response, Request } from "express";
+import { verifyToken } from "../utils/jwt";
+import { t } from "../i18n";
+import { AppError } from "../errors/AppError";
 
 export interface AuthRequest extends Request {
   user?: {
     id: number;
-    role: 'USER' | 'ADMIN';
+    role: "USER" | "ADMIN";
   };
 }
 
-export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
+export function authMiddleware(
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers["authorization"];
 
   if (!authHeader) {
-    return res.status(401).json({ message: t(req, 'UNAUTHORIZED') });
+    return next(
+      new AppError(t(req, "UNAUTHORIZED"), 401, "UNAUTHORIZED")
+    );
   }
 
-  const [scheme, token] = authHeader.split(' ');
-  if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ message: t(req, 'UNAUTHORIZED') });
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return next(
+      new AppError(t(req, "UNAUTHORIZED"), 401, "UNAUTHORIZED")
+    );
   }
 
   try {
-    const payload = verifyToken(token) as { id: number; role: 'USER' | 'ADMIN' };
+    const payload = verifyToken(token) as { id: number; role: "USER" | "ADMIN" };
     req.user = payload;
-    next();
+    return next();
   } catch {
-    return res.status(401).json({ message: t(req, 'UNAUTHORIZED') });
+    return next(
+      new AppError(t(req, "UNAUTHORIZED"), 401, "UNAUTHORIZED")
+    );
   }
 }
 
-export function roleMiddleware(roles: Array<'USER' | 'ADMIN'>) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+export function roleMiddleware(roles: Array<"USER" | "ADMIN">) {
+  return (req: AuthRequest, _res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({ message: t(req, 'UNAUTHORIZED') });
+      return next(
+        new AppError(t(req, "UNAUTHORIZED"), 401, "UNAUTHORIZED")
+      );
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: t(req, 'FORBIDDEN') });
+      return next(
+        new AppError(t(req, "FORBIDDEN"), 403, "FORBIDDEN")
+      );
     }
 
-    next();
+    return next();
   };
 }

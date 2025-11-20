@@ -1,95 +1,101 @@
-import { Router } from 'express';
-import { cacheMiddleware, invalidateCache } from '../middleware/cache';
-import { authMiddleware, AuthRequest } from '../middleware/auth';
-import { validateQuery, validateBody, validateParams } from '../middleware/validate';
-import { z } from 'zod';
-import { t } from '../i18n';
+// src/routes/restaurants.ts
+import { Router } from "express";
+import { cacheMiddleware, invalidateCache } from "../middleware/cache";
+import { authMiddleware, AuthRequest } from "../middleware/auth";
 import {
-  createReviewForRestaurant,
-  getRestaurantById,
-  listRestaurants,
-  listReviewsForRestaurant,
-} from '../services/restaurantService';
+  validateQuery,
+  validateBody,
+  validateParams,
+} from "../middleware/validate";
+import {
+  RestaurantsQueryDTO,
+  CreateRestaurantDTO,
+} from "../dto/RestaurantDTO";
+import { CreateReviewDTO, ReviewIdParamDTO } from "../dto/ReviewDTO";
+import { container } from "../container";
+import { RestaurantService } from "../services/RestaurantService";
 
 const router = Router();
+const restaurantService = container.resolve(RestaurantService);
 
-const listSchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(10),
-  cuisine: z.string().optional(),
-  rating: z.coerce.number().min(0).max(5).optional(),
-  neighborhood: z.string().optional(),
-  sort: z.string().regex(/^[a-zA-Z_]+:(asc|desc)$/).optional(),
-});
-
-const idParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-/** GET /restaurants */
-router.get('/', validateQuery(listSchema), cacheMiddleware, (req, res) => {
-  const { page, limit, cuisine, rating, neighborhood, sort } = req.query as any;
-  const result = listRestaurants({ page, limit, cuisine, rating, neighborhood, sort });
-  res.json(result);
-});
-
-/** GET /restaurants/:id */
+/**
+ * GET /restaurants
+ */
 router.get(
-  '/:id',
-  validateParams(idParamSchema),
+  "/",
+  validateQuery(RestaurantsQueryDTO),
   cacheMiddleware,
-  (req, res) => {
-    const { id } = req.params as any;
-    const restaurant = getRestaurantById(id);
-
-    if (!restaurant) {
-      return res.status(404).json({ message: t(req, 'RESTAURANT_NOT_FOUND') });
+  (req, res, next) => {
+    try {
+      const result = restaurantService.listRestaurants(req.query);
+      return res.json(result);
+    } catch (err) {
+      next(err);
     }
-
-    res.json(restaurant);
   }
 );
 
-/** GET /restaurants/:id/reviews */
+/**
+ * GET /restaurants/:id
+ */
 router.get(
-  '/:id/reviews',
-  validateParams(idParamSchema),
+  "/:id",
+  validateParams(ReviewIdParamDTO), // reutilizamos id:number DTO
   cacheMiddleware,
-  (req, res) => {
-    const { id } = req.params as any;
-    const reviews = listReviewsForRestaurant(id);
-    res.json(reviews);
+  (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const restaurant = restaurantService.getRestaurantById(id);
+      return res.json(restaurant);
+    } catch (err) {
+      next(err);
+    }
   }
 );
 
-/** POST /restaurants/:id/reviews */
-const reviewSchema = z.object({
-  rating: z.number().min(1).max(5),
-  comment: z.string().optional(),
-});
+/**
+ * GET /restaurants/:id/reviews
+ */
+router.get(
+  "/:id/reviews",
+  validateParams(ReviewIdParamDTO),
+  cacheMiddleware,
+  (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const reviews = restaurantService.listReviewsForRestaurant(id);
+      return res.json(reviews);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
+/**
+ * POST /restaurants/:id/reviews
+ */
 router.post(
-  '/:id/reviews',
-  validateParams(idParamSchema),
+  "/:id/reviews",
   authMiddleware,
-  validateBody(reviewSchema),
-  (req: AuthRequest, res) => {
-    const { id } = req.params as any;
-    const { rating, comment } = req.body;
+  validateParams(ReviewIdParamDTO),
+  validateBody(CreateReviewDTO),
+  (req: AuthRequest, res, next) => {
+    try {
+      const { id } = req.params;
+      const { rating, comment } = req.body;
 
-    const result = createReviewForRestaurant({
-      userId: req.user!.id,
-      restaurantId: id,
-      rating,
-      comment,
-    });
+      const result = restaurantService.createReviewForRestaurant({
+        userId: req.user!.id,
+        restaurantId: id,
+        rating,
+        comment,
+      });
 
-    if (result.type === 'RESTAURANT_NOT_FOUND') {
-      return res.status(404).json({ message: t(req, 'RESTAURANT_NOT_FOUND') });
+      invalidateCache();
+      return res.status(201).json({ id: result.id });
+    } catch (err) {
+      next(err);
     }
-
-    invalidateCache();
-    res.status(201).json({ id: result.id });
   }
 );
 

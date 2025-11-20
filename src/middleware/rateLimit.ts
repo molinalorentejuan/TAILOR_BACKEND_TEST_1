@@ -1,26 +1,32 @@
-import rateLimit from 'express-rate-limit';
-import { t } from '../i18n';
+import rateLimit from "express-rate-limit";
+import { t } from "../i18n";
+import { AppError } from "../errors/AppError";
 
 export const authRateLimiter = rateLimit({
-  windowMs: 60 * 1000,   // 1 minuto
-  max: 10,               // 10 peticiones por minuto
+  windowMs: 60 * 1000, // 1 minuto
+  max: 10, // 10 peticiones por minuto
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {
-    return res.status(429).json({
-      message: t(req, 'TOO_MANY_REQUESTS'),
-    });
+
+  handler: (req, _res, next) => {
+    next(new AppError(t(req, "TOO_MANY_REQUESTS"), 429, "RATE_LIMIT_AUTH"));
   },
+
+  // Por seguridad enterprise: si rate-limit falla, no rompe el server
+  skipFailedRequests: false,
+  skipSuccessfulRequests: false,
 });
 
 export const generalRateLimiter = rateLimit({
-  windowMs: 60 * 1000,   // 1 minuto
-  max: 200,              // 200 peticiones por minuto
+  windowMs: 60 * 1000, // 1 minuto
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {
-    return res.status(429).json({
-      message: t(req, 'TOO_MANY_REQUESTS'),
-    });
+
+  handler: (req, _res, next) => {
+    next(new AppError(t(req, "TOO_MANY_REQUESTS"), 429, "RATE_LIMIT_GENERAL"));
   },
+
+  skipFailedRequests: false,
+  skipSuccessfulRequests: false,
 });

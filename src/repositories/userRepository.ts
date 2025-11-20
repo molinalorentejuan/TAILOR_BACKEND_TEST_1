@@ -1,7 +1,17 @@
-import db from "../db";
+import { injectable } from "tsyringe";
+import db from "../db/db";
 
-export function findUserById(id: number) {
-  return db
-    .prepare("SELECT id, email, role FROM users WHERE id=?")
-    .get(id);
+export interface UserBasic {
+  id: number;
+  email: string;
+  role: "USER" | "ADMIN";
+}
+
+@injectable()
+export class UserRepository {
+  findUserById(id: number): UserBasic | undefined {
+    return db
+      .prepare("SELECT id, email, role FROM users WHERE id=?")
+      .get(id) as UserBasic | undefined;
+  }
 }

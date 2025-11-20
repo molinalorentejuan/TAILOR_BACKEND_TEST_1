@@ -1,53 +1,66 @@
-import { restaurantAdminRepository } from '../repositories/restaurantAdminRepository';
+// src/services/RestaurantAdminService.ts
+import { injectable, inject } from "tsyringe";
+import { RestaurantAdminRepository } from "../repositories/RestaurantAdminRepository";
+import { AppError } from "../errors/AppError";
+import {
+  CreateRestaurantInput,
+  UpdateRestaurantInput,
+} from "../dto/RestaurantDTO";
 
-interface RestaurantAdminInput {
-  name: string;
-  cuisine?: string;
-  rating?: number;
-  neighborhood?: string;
-}
+@injectable()
+export class RestaurantAdminService {
+  constructor(
+    @inject(RestaurantAdminRepository)
+    private repo: RestaurantAdminRepository
+  ) {}
 
-export function createRestaurant(input: RestaurantAdminInput) {
-  const { name, cuisine, rating = 0, neighborhood } = input;
+  /**
+   * Crear restaurante (DTO ya validado)
+   */
+  createRestaurant(data: CreateRestaurantInput) {
+    const { name, cuisine, rating = 0, neighborhood } = data;
 
-  const id = restaurantAdminRepository.insertRestaurant(
-    name,
-    cuisine ?? null,
-    rating,
-    neighborhood ?? null
-  );
+    const id = this.repo.insertRestaurant(
+      name,
+      cuisine ?? null,
+      rating,
+      neighborhood ?? null
+    );
 
-  return { id };
-}
-
-export function updateRestaurant(
-  id: number,
-  input: RestaurantAdminInput
-): { type: 'OK' } | { type: 'NOT_FOUND' } {
-  if (!restaurantAdminRepository.restaurantExists(id)) {
-    return { type: 'NOT_FOUND' };
+    return { id };
   }
 
-  const { name, cuisine, rating, neighborhood } = input;
+  /**
+   * Actualizar restaurante
+   */
+  updateRestaurant(id: number, data: UpdateRestaurantInput) {
+    if (!this.repo.restaurantExists(id)) {
+      throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
+    }
 
-  restaurantAdminRepository.updateRestaurant(
-    id,
-    name ?? null,
-    cuisine ?? null,
-    rating ?? null,
-    neighborhood ?? null
-  );
+    const { name, cuisine, rating, neighborhood } = data;
 
-  return { type: 'OK' };
-}
+    this.repo.updateRestaurant(
+      id,
+      name ?? null,
+      cuisine ?? null,
+      rating ?? null,
+      neighborhood ?? null
+    );
 
-export function deleteRestaurantById(
-  id: number
-): { type: 'OK' } | { type: 'NOT_FOUND' } {
-  if (!restaurantAdminRepository.restaurantExists(id)) {
-    return { type: 'NOT_FOUND' };
+    return { id };
   }
 
-  restaurantAdminRepository.deleteRestaurant(id);
-  return { type: 'OK' };
+  /**
+   * Eliminar restaurante
+   */
+  deleteRestaurant(id: number) {
+    if (!this.repo.restaurantExists(id)) {
+      throw new AppError("Restaurant not found", 404, "RESTAURANT_NOT_FOUND");
+    }
+
+    this.repo.deleteRestaurant(id);
+
+    return { id };
+  }
 }

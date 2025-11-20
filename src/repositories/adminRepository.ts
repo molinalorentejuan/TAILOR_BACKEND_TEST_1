@@ -1,31 +1,37 @@
-// src/repositories/adminRepository.ts
-import db from '../db';
+import { injectable } from "tsyringe";
+import db from "../db/db";
 
-export const adminRepository = {
-  getStats: () => {
-      const users = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
-      const restaurants = db.prepare("SELECT COUNT(*) as count FROM restaurants").get().count;
-      const reviews = db.prepare("SELECT COUNT(*) as count FROM reviews").get().count;
+@injectable()
+export class AdminRepository {
+  getStats() {
+    const users = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
+    const restaurants = db
+      .prepare("SELECT COUNT(*) as count FROM restaurants")
+      .get().count;
+    const reviews = db
+      .prepare("SELECT COUNT(*) as count FROM reviews")
+      .get().count;
 
-      return { users, restaurants, reviews };
-    },
-  countUsers() {
-    return (db.prepare('SELECT COUNT(*) as c FROM users').get() as any).c;
-  },
+    return { users, restaurants, reviews };
+  }
 
-  countReviews() {
-    return (db.prepare('SELECT COUNT(*) as c FROM reviews').get() as any).c;
-  },
+  countUsers(): number {
+    return db.prepare("SELECT COUNT(*) as c FROM users").get().c;
+  }
 
-  countRestaurants() {
-    return (db.prepare('SELECT COUNT(*) as c FROM restaurants').get() as any).c;
-  },
+  countReviews(): number {
+    return db.prepare("SELECT COUNT(*) as c FROM reviews").get().c;
+  }
+
+  countRestaurants(): number {
+    return db.prepare("SELECT COUNT(*) as c FROM restaurants").get().c;
+  }
 
   getTopRated() {
     return db
-      .prepare('SELECT * FROM restaurants ORDER BY rating DESC LIMIT 3')
+      .prepare("SELECT * FROM restaurants ORDER BY rating DESC LIMIT 3")
       .all();
-  },
+  }
 
   getMostReviewed() {
     return db
@@ -40,5 +46,5 @@ export const adminRepository = {
       `
       )
       .all();
-  },
-};
+  }
+}
