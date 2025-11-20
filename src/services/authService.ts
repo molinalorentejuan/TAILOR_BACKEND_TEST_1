@@ -2,8 +2,8 @@
 import bcrypt from "bcryptjs";
 import { injectable, inject } from "tsyringe";
 import { signToken } from "../utils/jwt";
-import { AuthRepository, DBUser } from "../repositories/AuthRepository";
-import { AppError } from "../errors/AppError";
+import { AuthRepository, DBUser } from "../repositories/authRepository";
+import { AppError } from "../errors/appError";
 import { RegisterInput, LoginInput } from "../dto/auth.dto";
 
 @injectable()

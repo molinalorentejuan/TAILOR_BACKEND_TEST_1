@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import { AdminRepository } from "../repositories/AdminRepository";
-import { AppError } from "../errors/AppError";
+import { AdminRepository } from "../repositories/adminRepository";
+import { AppError } from "../errors/appError";
 
 @injectable()
 export class AdminService {

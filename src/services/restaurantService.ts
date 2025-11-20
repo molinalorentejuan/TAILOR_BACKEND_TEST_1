@@ -1,8 +1,8 @@
 // src/services/RestaurantService.ts
 import { injectable, inject } from "tsyringe";
-import { RestaurantRepository } from "../repositories/RestaurantRepository";
-import { ReviewRepository } from "../repositories/ReviewRepository";
-import { AppError } from "../errors/AppError";
+import { RestaurantRepository } from "../repositories/restaurantRepository";
+import { ReviewRepository } from "../repositories/reviewRepository";
+import { AppError } from "../errors/appError";
 
 import {
   RestaurantsQueryInput,

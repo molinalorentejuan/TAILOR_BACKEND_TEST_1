@@ -11,9 +11,9 @@ import {
   RestaurantsQueryDTO,
   CreateRestaurantDTO,
 } from "../dto/RestaurantDTO";
-import { CreateReviewDTO, ReviewIdParamDTO } from "../dto/ReviewDTO";
+import { CreateReviewDTO, ReviewIdParamDTO } from "../dto/reviewDTO";
 import { container } from "../container";
-import { RestaurantService } from "../services/RestaurantService";
+import { RestaurantService } from "../services/restaurantService";
 
 const router = Router();
 const restaurantService = container.resolve(RestaurantService);

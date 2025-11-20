@@ -1,6 +1,6 @@
 import NodeCache from "node-cache";
 import { Request, Response, NextFunction } from "express";
-import { AppError } from "../errors/AppError";
+import { AppError } from "../errors/appError";
 
 const cache = new NodeCache({ stdTTL: 30 });
 

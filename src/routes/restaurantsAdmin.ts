@@ -8,7 +8,7 @@ import {
   UpdateRestaurantDTO,
 } from "../dto/RestaurantDTO";
 import { container } from "../container";
-import { RestaurantAdminService } from "../services/RestaurantAdminService";
+import { RestaurantAdminService } from "../services/restaurantAdminService";
 
 const router = Router();
 const adminService = container.resolve(RestaurantAdminService);

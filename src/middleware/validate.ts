@@ -1,7 +1,7 @@
 // src/middleware/validate.ts
 import { NextFunction, Request, Response } from "express";
 import { ZodSchema } from "zod";
-import { AppError } from "../errors/AppError";
+import { AppError } from "../errors/appError";
 import { t } from "../i18n";
 
 export function validateBody(schema: ZodSchema<any>) {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware, roleMiddleware } from "../middleware/auth";
 import { container } from "../container";
-import { AdminService } from "../services/AdminService";
+import { AdminService } from "../services/adminService";
 
 const router = Router();
 const adminService = container.resolve(AdminService);

@@ -1,9 +1,9 @@
 // src/services/RestaurantAdminService.ts
 import { injectable, inject } from "tsyringe";
-import { RestaurantAdminRepository } from "../repositories/RestaurantAdminRepository";
-import { OperatingHoursRepository } from "../repositories/OperatingHoursRepository";
-import { AppError } from "../errors/AppError";
-import { CreateRestaurantInput, UpdateRestaurantInput } from "../dto/RestaurantDTO";
+import { RestaurantAdminRepository } from "../repositories/restaurantAdminRepository";
+import { OperatingHoursRepository } from "../repositories/operatingHoursRepository";
+import { AppError } from "../errors/appError";
+import { CreateRestaurantInput, UpdateRestaurantInput } from "../dto/restaurantDTO";
 
 @injectable()
 export class RestaurantAdminService {

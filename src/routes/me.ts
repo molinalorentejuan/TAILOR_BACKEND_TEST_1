@@ -6,10 +6,10 @@ import {
   UpdateReviewDTO,
   ReviewIdParamDTO,
 } from "../dto/ReviewDTO";
-import { FavoriteParamsDTO } from "../dto/FavoriteDTO";
+import { FavoriteParamsDTO } from "../dto/favoriteDTO";
 import { invalidateCache } from "../middleware/cache";
 import { container } from "../container";
-import { UserService } from "../services/UserService";
+import { UserService } from "../services/userService";
 
 const router = Router();
 const userService = container.resolve(UserService);

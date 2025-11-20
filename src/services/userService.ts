@@ -1,10 +1,10 @@
 // src/services/UserService.ts
 import { injectable, inject } from "tsyringe";
-import { UserRepository } from "../repositories/UserRepository";
-import { ReviewRepository } from "../repositories/ReviewRepository";
-import { FavoriteRepository } from "../repositories/FavoriteRepository";
-import { RestaurantRepository } from "../repositories/RestaurantRepository";
-import { AppError } from "../errors/AppError";
+import { UserRepository } from "../repositories/userRepository";
+import { ReviewRepository } from "../repositories/reviewRepository";
+import { FavoriteRepository } from "../repositories/favoriteRepository";
+import { RestaurantRepository } from "../repositories/restaurantRepository";
+import { AppError } from "../errors/appError";
 
 import {
   UpdateReviewInput,

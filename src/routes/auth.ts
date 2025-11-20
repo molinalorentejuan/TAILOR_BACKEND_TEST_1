@@ -3,8 +3,8 @@ import { Router } from "express";
 import { validateBody } from "../middleware/validate";
 import { authRateLimiter } from "../middleware/rateLimit";
 import { container } from "../container";
-import { AuthService } from "../services/AuthService";
-import { RegisterDTO, LoginDTO } from "../dto/AuthDTO";
+import { AuthService } from "../services/authService";
+import { RegisterDTO, LoginDTO } from "../dto/authDTO";
 
 const router = Router();
 const authService = container.resolve(AuthService);
